@@ -1,6 +1,6 @@
 # Navbar Component
 
-This folder contains the `navbar.tsx` React component for InterviewAI Pro.
+This folder contains the `navbar.tsx` React component for the MockMate Project
 
 ## Features
 - Responsive navigation bar for Next.js
