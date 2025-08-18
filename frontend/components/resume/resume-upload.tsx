@@ -8,7 +8,12 @@ import { Upload, FileText, X, CheckCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 
-export function ResumeUpload() {
+
+interface ResumeUploadProps {
+  onResumeExtracted?: (resumeText: string) => void;
+}
+
+export function ResumeUpload({ onResumeExtracted }: ResumeUploadProps) {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
@@ -36,14 +41,24 @@ export function ResumeUpload() {
     setShowAnalyzingOverlay(false)
   }
 
-  // Simulate analysis with overlay
-  const handleAnalyze = () => {
-    setShowAnalyzingOverlay(true)
-    setIsAnalyzing(true)
-    setTimeout(() => {
-      setShowAnalyzingOverlay(false)
-      setIsAnalyzing(false)
-    }, 3000)
+  // Extract text from PDF and call onResumeExtracted
+  const handleExtractResume = async () => {
+    if (!uploadedFile) return;
+    setShowAnalyzingOverlay(true);
+    setIsAnalyzing(true);
+    try {
+      // Use PDF.js or similar to extract text from PDF
+      // For now, just send a placeholder string
+      let resumeText = "PDF text extraction not implemented";
+      if (onResumeExtracted) {
+        onResumeExtracted(resumeText);
+      }
+    } finally {
+      setTimeout(() => {
+        setShowAnalyzingOverlay(false);
+        setIsAnalyzing(false);
+      }, 1000);
+    }
   }
 
   return (
@@ -124,9 +139,22 @@ export function ResumeUpload() {
 
               {!isAnalyzing && (
                 <div className="flex justify-center gap-4">
-                  <Button onClick={handleAnalyze}>
-                    Analyze Resume
-                  </Button>
+                  <button
+                    onClick={handleExtractResume}
+                    disabled={isAnalyzing}
+                    className="px-6 py-2 rounded-full font-bold text-base transition-all shadow-md bg-emerald-500 hover:bg-emerald-600 focus:bg-emerald-700 text-white"
+                    style={{
+                      border: 'none',
+                      outline: 'none',
+                      cursor: isAnalyzing ? 'not-allowed' : 'pointer',
+                      opacity: isAnalyzing ? 0.6 : 1,
+                      minWidth: '120px',
+                      fontSize: '1rem',
+                      boxShadow: '0 2px 12px 0 rgba(16,185,129,0.10)',
+                    }}
+                  >
+                    Next
+                  </button>
                 </div>
               )}
             </div>
