@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { AlertTriangle, CheckCircle, Target, Plus } from "lucide-react"
 
-const gapAnalysis = {
+const defaultGapAnalysis = {
   matching: ["JavaScript", "React", "Node.js", "Leadership", "Communication"],
   missing: ["Python", "AWS", "Docker", "Kubernetes", "Machine Learning"],
   recommendations: [
@@ -18,7 +18,19 @@ const gapAnalysis = {
   ],
 }
 
-export function GapAnalysis() {
+interface GapAnalysisProps {
+  gapAnalysis?: { matching?: string[]; missing?: string[]; recommendations?: string[] };
+  loading?: boolean;
+}
+
+export function GapAnalysis({ gapAnalysis, loading }: GapAnalysisProps) {
+  const gapAnalysisDataRaw = gapAnalysis && Object.keys(gapAnalysis).length ? gapAnalysis : defaultGapAnalysis;
+  const gapAnalysisData = {
+    matching: gapAnalysisDataRaw.matching ?? [],
+    missing: gapAnalysisDataRaw.missing ?? [],
+    recommendations: gapAnalysisDataRaw.recommendations ?? [],
+  };
+
   const [jobDescription, setJobDescription] = useState("")
   const [isAnalyzing, setIsAnalyzing] = useState(false)
 
@@ -62,15 +74,21 @@ export function GapAnalysis() {
         </div>
 
         {/* Analysis results */}
-        <div className="space-y-4">
+        {loading ? (
+          <div className="space-y-4">
+            <div className="h-6 w-full bg-muted rounded-md animate-pulse" />
+            <div className="h-6 w-3/4 bg-muted rounded-md animate-pulse" />
+          </div>
+        ) : (
+          <div className="space-y-4">
           {/* Matching skills */}
           <div>
             <h4 className="font-semibold mb-3 flex items-center gap-2 text-secondary">
               <CheckCircle className="h-4 w-4" />
-              Matching Skills ({gapAnalysis.matching.length})
+              Matching Skills ({gapAnalysisData.matching.length})
             </h4>
             <div className="flex flex-wrap gap-2">
-              {gapAnalysis.matching.map((skill) => (
+              {gapAnalysisData.matching.map((skill) => (
                 <Badge key={skill} variant="default" className="bg-secondary/20 text-secondary border-secondary/30">
                   {skill}
                 </Badge>
@@ -82,10 +100,10 @@ export function GapAnalysis() {
           <div>
             <h4 className="font-semibold mb-3 flex items-center gap-2 text-destructive">
               <AlertTriangle className="h-4 w-4" />
-              Skills to Develop ({gapAnalysis.missing.length})
+              Skills to Develop ({gapAnalysisData.missing.length})
             </h4>
             <div className="flex flex-wrap gap-2">
-              {gapAnalysis.missing.map((skill) => (
+              {gapAnalysisData.missing.map((skill) => (
                 <Badge key={skill} variant="destructive" className="bg-destructive/20 border-destructive/30">
                   {skill}
                 </Badge>
@@ -97,7 +115,7 @@ export function GapAnalysis() {
           <div>
             <h4 className="font-semibold mb-3">Recommendations</h4>
             <div className="space-y-2">
-              {gapAnalysis.recommendations.map((rec, index) => (
+              {gapAnalysisData.recommendations.map((rec, index) => (
                 <div key={index} className="p-3 glass rounded-lg text-sm">
                   <p>{rec}</p>
                 </div>
@@ -105,6 +123,7 @@ export function GapAnalysis() {
             </div>
           </div>
         </div>
+        )}
       </CardContent>
     </Card>
   )

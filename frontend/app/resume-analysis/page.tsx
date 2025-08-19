@@ -7,8 +7,11 @@ export default function ResumeAnalysisPage() {
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [resumeText, setResumeText] = useState<string | null>(null);
-  const [jobRole, setJobRole] = useState("");
+  const [                                                                                                                                                                                                               jobRole, setJobRole] = useState("");
   const [showJobInput, setShowJobInput] = useState(false);
+  const [skillsData, setSkillsData] = useState<any[] | null>(null);
+  const [keywordsData, setKeywordsData] = useState<string[] | null>(null);
+  const [gapAnalysisData, setGapAnalysisData] = useState<any | null>(null);
 
   // Auto-expand textarea height
   function autoExpand(e: React.FormEvent<HTMLTextAreaElement>) {
@@ -21,6 +24,9 @@ export default function ResumeAnalysisPage() {
     if (!resumeText || !jobRole) return;
     setLoading(true);
     setAnalysis(null);
+    setSkillsData(null);
+    setGapAnalysisData(null);
+    setKeywordsData(null);
     try {
       const res = await fetch("/api/analyze-resume", {
         method: "POST",
@@ -28,7 +34,31 @@ export default function ResumeAnalysisPage() {
         body: JSON.stringify({ resumeText, jobRole })
       });
       const data = await res.json();
-      setAnalysis(data.result?.candidates?.[0]?.content?.parts?.[0]?.text || JSON.stringify(data.result));
+      if (data.error) {
+        setAnalysis(`Error: ${data.error}`);
+        setLoading(false);
+        return;
+      }
+      const result = data.result || data;
+
+      // primary text
+      const analysisText = result.analysisText || result.text || result.raw?.candidates?.[0]?.content?.parts?.[0]?.text || JSON.stringify(result.raw || result);
+      setAnalysis(analysisText);
+
+      // structured fields
+      if (result.skills) setSkillsData(result.skills);
+      if (result.keywords) setKeywordsData(result.keywords);
+      if (result.gapAnalysis) setGapAnalysisData(result.gapAnalysis);
+
+      // fallback: if API returned parsed JSON inside result.text, attempt to parse
+      try {
+        const maybe = JSON.parse(result.text || "");
+        if (maybe.skills && !skillsData) setSkillsData(maybe.skills);
+        if (maybe.keywords && !keywordsData) setKeywordsData(maybe.keywords);
+        if (maybe.gapAnalysis && !gapAnalysisData) setGapAnalysisData(maybe.gapAnalysis);
+      } catch (e) {
+        // ignore
+      }
     } catch (err) {
       setAnalysis("Error analyzing resume.");
     }
@@ -145,30 +175,32 @@ export default function ResumeAnalysisPage() {
 
         <div className="w-full h-0.5 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-full mb-16" />
 
-        {/* Section header for analysis results */}
-        <div className="text-center mb-8">
-          <h2 className="text-2xl font-semibold tracking-tight">Analysis Results</h2>
-        </div>
-
-        {/* Analysis sections stacked below, responsive for mobile */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-24">
-          <div>
-            <SkillsAnalysis />
-          </div>
-          <div>
-            <GapAnalysis />
-          </div>
-        </div>
-
-        {/* Loader and analysis result */}
+        {/* Show loader while analyzing; show results and analysis sections only after analysis completes */}
         {loading && (
           <div className="mt-8 text-center text-lg text-blue-600">Analyzing your resume...</div>
         )}
+
         {analysis && (
-          <div className="mt-8 p-6 bg-white rounded shadow text-gray-800">
-            <h2 className="text-2xl font-semibold mb-4">Analysis Result</h2>
-            <pre className="whitespace-pre-wrap break-words">{analysis}</pre>
-          </div>
+          <>
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-semibold tracking-tight">Analysis Results</h2>
+            </div>
+
+            {/* Analysis sections stacked below, responsive for mobile */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-24">
+              <div>
+                <SkillsAnalysis skills={skillsData ?? undefined} keywords={keywordsData ?? undefined} />
+              </div>
+              <div>
+                <GapAnalysis gapAnalysis={gapAnalysisData ?? undefined} />
+              </div>
+            </div>
+
+            <div className="mt-8 p-6 bg-white rounded shadow text-gray-800">
+              <h2 className="text-2xl font-semibold mb-4">Analysis Result</h2>
+              <pre className="whitespace-pre-wrap break-words">{analysis}</pre>
+            </div>
+          </>
         )}
       </div>
     </div>

@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Brain, TrendingUp } from "lucide-react"
 
-const extractedSkills = [
+const defaultExtractedSkills = [
   { name: "JavaScript", level: 90, category: "Technical" },
   { name: "React", level: 85, category: "Technical" },
   { name: "Node.js", level: 80, category: "Technical" },
@@ -16,7 +16,7 @@ const extractedSkills = [
   { name: "Project Management", level: 65, category: "Management" },
 ]
 
-const keywords = [
+const defaultKeywords = [
   "Full Stack Developer",
   "Agile Methodology",
   "REST APIs",
@@ -26,8 +26,16 @@ const keywords = [
   "CI/CD",
   "Cloud Computing",
 ]
+interface SkillsAnalysisProps {
+  skills?: { name: string; level?: number; category?: string }[];
+  keywords?: string[];
+  loading?: boolean;
+}
 
-export function SkillsAnalysis() {
+export function SkillsAnalysis({ skills, keywords, loading }: SkillsAnalysisProps) {
+  const extractedSkills = skills && skills.length ? skills : defaultExtractedSkills;
+  const keywordsList = keywords && keywords.length ? keywords : defaultKeywords;
+
   return (
     <Card className="glass">
       <CardHeader>
@@ -39,6 +47,12 @@ export function SkillsAnalysis() {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Skills with levels */}
+        {loading ? (
+          <div className="space-y-4">
+            <div className="h-4 w-3/5 bg-muted rounded-md animate-pulse" />
+            <div className="h-4 w-2/5 bg-muted rounded-md animate-pulse" />
+          </div>
+        ) : (
         <div>
           <h4 className="font-semibold mb-4 flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-secondary" />
@@ -54,19 +68,20 @@ export function SkillsAnalysis() {
                       {skill.category}
                     </Badge>
                   </div>
-                  <span className="text-sm text-muted-foreground">{skill.level}%</span>
+                  <span className="text-sm text-muted-foreground">{(skill.level ?? 75)}%</span>
                 </div>
-                <Progress value={skill.level} className="h-2" />
+                <Progress value={skill.level ?? 75} className="h-2" />
               </div>
             ))}
           </div>
-        </div>
+          </div>
+        )}
 
         {/* Keywords */}
         <div>
           <h4 className="font-semibold mb-4">Key Terms & Technologies</h4>
           <div className="flex flex-wrap gap-2">
-            {keywords.map((keyword) => (
+            {keywordsList.map((keyword) => (
               <Badge key={keyword} variant="secondary" className="glass">
                 {keyword}
               </Badge>
