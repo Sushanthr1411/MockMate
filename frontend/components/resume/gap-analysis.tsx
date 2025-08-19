@@ -44,7 +44,7 @@ export function GapAnalysis() {
             placeholder="Paste the job description here to analyze skill gaps..."
             value={jobDescription}
             onChange={(e) => setJobDescription(e.target.value)}
-            className="min-h-[100px] glass bg-transparent"
+            className="min-h-[100px] glass bg-transparent w-full max-w-4xl mx-auto"
           />
           <Button onClick={analyzeGap} disabled={!jobDescription || isAnalyzing} className="w-full">
             {isAnalyzing ? (

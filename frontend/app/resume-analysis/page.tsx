@@ -37,7 +37,7 @@ export default function ResumeAnalysisPage() {
 
   return (
     <div className="min-h-screen pb-12 relative">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header with extra gap from navbar */}
         <div className="text-center space-y-4 mb-16 mt-32">
           <h1 className="text-4xl sm:text-5xl font-bold">
@@ -63,21 +63,25 @@ export default function ResumeAnalysisPage() {
           <div className="flex flex-col items-center mt-12">
             <h2 className="text-3xl font-extrabold mb-6 text-white drop-shadow-md tracking-tight">Job Description</h2>
             <div className="w-full flex justify-center">
-              <div className="job-card-wrapper" style={{ width: '1200px', maxWidth: '98vw' }}>
+              <div className="job-card-wrapper max-w-7xl w-full px-6 mx-auto">
                 <style>{`
                   .job-card-wrapper { display:flex; justify-content:center; }
-                  .job-card { position: relative; border-radius: 9999px; overflow: visible; background: rgba(6,6,8,0.72); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1px solid rgba(255,255,255,0.04); padding: 8px 28px; transition: transform .16s ease, box-shadow .16s ease; }
-                  .job-card::before { content: ''; position: absolute; inset: -6px; border-radius: 9999px; background: conic-gradient(#00f0b0, #2f6bff, #9b6bff, #ff8a50, #00f0b0); filter: blur(12px); opacity: 0.24; pointer-events: none; z-index: -2; }
+                  .job-card { width: 100%; position: relative; border-radius: 9999px; overflow: visible; background: rgba(6,6,8,0.72); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1px solid rgba(255,255,255,0.04); padding: 6px 12px; transition: transform .16s ease, box-shadow .16s ease; }
+                  .job-card::before { content: ''; position: absolute; inset: -6px; border-radius: 9999px; background: linear-gradient(90deg, #0cc0df, #ffde59); filter: blur(18px); opacity: 0.22; pointer-events: none; z-index: -2; }
                   .job-card::after { content: ''; position: absolute; inset: 0; border-radius: 9999px; box-shadow: inset 0 2px 12px rgba(0,0,0,0.6); pointer-events: none; z-index: -1; }
                   .job-card .inner-rgb { position: absolute; inset: 0; border-radius: 9999px; background: linear-gradient(90deg, rgba(0,240,176,0.04), rgba(106,161,255,0.04), rgba(155,107,255,0.04)); pointer-events: none; z-index: 0; }
                   .job-card:hover { transform: translateY(-6px); box-shadow: 0 30px 80px rgba(2,6,23,0.7); }
                   .job-row { display: flex; gap: 16px; align-items: center; max-width: 100%; position: relative; }
                   .job-icon { width: 44px; height: 44px; display:flex; align-items:center; justify-content:center; background: rgba(255,255,255,0.02); border-radius: 10px; border: 1px solid rgba(255,255,255,0.03); flex-shrink: 0; margin-left: 6px; }
                   /* thin, lengthy pill: small vertical padding, large horizontal padding to make a long pill */
-                  .job-textarea { width: 100%; min-height: 34px; max-height: 260px; resize: none; display: block; background: transparent; color: #E8EFFA; font-size: 1rem; line-height: 1.4; border: none; outline: none; padding: 10px 64px 10px 14px; caret-color: #00e6a5; }
+                  .job-textarea { width: 100%; min-height: 34px; max-height: 260px; resize: none; display: block; background: transparent; color: #E8EFFA; font-size: 1rem; line-height: 1.4; border: none; outline: none; padding: 8px 88px 8px 14px; caret-color: #00e6a5; }
                   .job-textarea::placeholder { color: rgba(230,235,245,0.28); }
                   .job-helper { margin-top: 10px; font-size: 0.95rem; color: rgba(230,235,245,0.5); text-align: center; }
-                  .job-clear { position: absolute; right: 22px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: rgba(230,235,245,0.6); padding: 6px 8px; border-radius:8px; cursor: pointer; font-size: 1.25rem; line-height: 1; }
+                  .job-clear { position: absolute; right: 76px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: rgba(230,235,245,0.6); padding: 6px 8px; border-radius:8px; cursor: pointer; font-size: 1.25rem; line-height: 1; }
+                  .send-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 48px; height: 48px; border-radius: 9999px; display:flex; align-items:center; justify-content:center; border: none; cursor: pointer; box-shadow: 0 8px 30px rgba(12,192,223,0.08); background: linear-gradient(90deg, #0cc0df, #ffde59); }
+                  .send-btn:hover { transform: translateY(-52%); box-shadow: 0 14px 36px rgba(12,192,223,0.18); }
+                  .send-btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+                  .send-btn:focus { outline: 3px solid rgba(12,192,223,0.18); outline-offset: 2px; }
                   .job-clear:hover { color: rgba(255,255,255,0.95); transform: translateY(-50%) translateX(-2px); }
                   .pill-handle { width: 44px; height: 6px; background: rgba(255,255,255,0.03); border-radius: 9999px; margin: 0 auto 10px; display: none; }
                   .analyze-btn { position: relative; display: inline-flex; align-items: center; gap: 10px; padding: 10px 36px; border-radius: 9999px; font-weight: 700; font-size: 1.02rem; color: #E6F0FA; background: linear-gradient(90deg, rgba(255,255,255,0.01) 0%, rgba(255,255,255,0.015) 50%, rgba(255,255,255,0.01) 100%); border: 1px solid rgba(255,255,255,0.06); cursor: pointer; box-shadow: inset 0 1px 0 rgba(255,255,255,0.02), 0 10px 28px rgba(3,6,10,0.45); transition: transform .12s ease, background-position .6s ease, box-shadow .12s ease; background-size: 200% 100%; background-position: 0% 0%; }
@@ -85,7 +89,7 @@ export default function ResumeAnalysisPage() {
                   .analyze-btn svg { opacity: 0.95; transform: translateX(0); transition: transform .12s ease; }
                   .analyze-btn:hover svg { transform: translateX(4px); }
                   .analyze-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
-                  @media (max-width: 640px) { .job-card-wrapper { padding: 0 16px; } .job-row { gap: 12px; } .job-icon { width: 40px; height: 40px; } .job-textarea { min-height: 48px; } .analyze-btn { padding: 10px 22px; } .pill-handle { display: block; } }
+                  @media (max-width: 640px) { .job-card-wrapper { padding: 0 16px; } .job-row { gap: 12px; } .job-icon { width: 40px; height: 40px; } .job-textarea { min-height: 48px; padding-right: 72px; } .analyze-btn { padding: 10px 22px; } .pill-handle { display: block; } }
                 `}</style>
 
                 <div className="job-card">
@@ -113,6 +117,21 @@ export default function ResumeAnalysisPage() {
                     >
                       ×
                     </button>
+
+                    <button
+                      type="button"
+                      className="send-btn"
+                      onClick={handleAnalyze}
+                      disabled={loading || !jobRole.trim()}
+                      aria-label="Send job description"
+                      title="Send"
+                    >
+                      {loading ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                      ) : (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 2L11 13" stroke="#071018" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/><path d="M22 2L15 22L11 13L2 9L22 2Z" fill="#071018"/></svg>
+                      )}
+                    </button>
                   </div>
 
                   {/* tip removed */}
@@ -120,15 +139,7 @@ export default function ResumeAnalysisPage() {
               </div>
             </div>
 
-            <div className="mt-8">
-              <button
-                onClick={handleAnalyze}
-                disabled={loading || !jobRole.trim()}
-                className="analyze-btn"
-              >
-                {loading ? 'Analyzing...' : 'Analyze Resume'}
-              </button>
-            </div>
+            {/* Analyze button replaced by send button inside pill */}
           </div>
         )}
 
