@@ -63,53 +63,29 @@ export default function ResumeAnalysisPage() {
           <div className="flex flex-col items-center mt-12">
             <h2 className="text-3xl font-extrabold mb-6 text-white drop-shadow-md tracking-tight">Job Description</h2>
             <div className="w-full flex justify-center">
-              <div className="job-card-wrapper" style={{width: '820px', maxWidth: '95vw'}}>
+              <div className="job-card-wrapper" style={{ width: '1200px', maxWidth: '98vw' }}>
                 <style>{`
-                  /* Gemini-like pill: black theme + RGB rim */
                   .job-card-wrapper { display:flex; justify-content:center; }
-                  .job-card { position: relative; border-radius: 9999px; overflow: visible; background: rgba(6,6,8,0.7); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1px solid rgba(255,255,255,0.04); padding: 10px 14px; transition: transform .16s ease, box-shadow .16s ease; }
-
-                  /* outer RGB rim */
-                  /* animated RGB rim using a rotating conic gradient */
+                  .job-card { position: relative; border-radius: 9999px; overflow: visible; background: rgba(6,6,8,0.72); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1px solid rgba(255,255,255,0.04); padding: 8px 28px; transition: transform .16s ease, box-shadow .16s ease; }
                   .job-card::before { content: ''; position: absolute; inset: -6px; border-radius: 9999px; background: conic-gradient(#00f0b0, #2f6bff, #9b6bff, #ff8a50, #00f0b0); filter: blur(12px); opacity: 0.24; pointer-events: none; z-index: -2; }
                   .job-card::after { content: ''; position: absolute; inset: 0; border-radius: 9999px; box-shadow: inset 0 2px 12px rgba(0,0,0,0.6); pointer-events: none; z-index: -1; }
-                  /* subtle inner RGB tint to give the pill a gentle color cast */
                   .job-card .inner-rgb { position: absolute; inset: 0; border-radius: 9999px; background: linear-gradient(90deg, rgba(0,240,176,0.04), rgba(106,161,255,0.04), rgba(155,107,255,0.04)); pointer-events: none; z-index: 0; }
-
                   .job-card:hover { transform: translateY(-6px); box-shadow: 0 30px 80px rgba(2,6,23,0.7); }
-                  .job-card:focus-within::before { opacity: 0.32; filter: blur(8px); }
-
-                  .job-row { display: flex; gap: 16px; align-items: center; min-width: 640px; max-width: 100%; }
-                  .job-icon { width: 44px; height: 44px; display:flex; align-items:center; justify-content:center; background: rgba(255,255,255,0.02); border-radius: 10px; border: 1px solid rgba(255,255,255,0.03); }
-
-                  .job-textarea { width: 100%; min-height: 48px; max-height: 220px; resize: none; background: transparent; color: #E8EFFA; font-size: 1rem; line-height: 1.5; border: none; outline: none; padding: 8px 0 8px 18px; caret-color: #00e6a5; }
+                  .job-row { display: flex; gap: 16px; align-items: center; max-width: 100%; position: relative; }
+                  .job-icon { width: 44px; height: 44px; display:flex; align-items:center; justify-content:center; background: rgba(255,255,255,0.02); border-radius: 10px; border: 1px solid rgba(255,255,255,0.03); flex-shrink: 0; margin-left: 6px; }
+                  /* thin, lengthy pill: small vertical padding, large horizontal padding to make a long pill */
+                  .job-textarea { width: 100%; min-height: 34px; max-height: 260px; resize: none; display: block; background: transparent; color: #E8EFFA; font-size: 1rem; line-height: 1.4; border: none; outline: none; padding: 10px 64px 10px 14px; caret-color: #00e6a5; }
                   .job-textarea::placeholder { color: rgba(230,235,245,0.28); }
-
-                  .job-helper { margin-top: 10px; font-size: 0.95rem; color: rgba(230,235,245,0.5); text-align: left; }
-
-                  .job-clear { background: transparent; border: none; color: rgba(230,235,245,0.5); padding: 6px; border-radius:8px; cursor: pointer; }
-                  .job-clear:hover { color: rgba(255,255,255,0.9); transform: scale(1.03); }
-
-                  /* mic removed - keeping input controls minimal */
-
-                  /* slim handle (like Gemini top hint) */
+                  .job-helper { margin-top: 10px; font-size: 0.95rem; color: rgba(230,235,245,0.5); text-align: center; }
+                  .job-clear { position: absolute; right: 22px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: rgba(230,235,245,0.6); padding: 6px 8px; border-radius:8px; cursor: pointer; font-size: 1.25rem; line-height: 1; }
+                  .job-clear:hover { color: rgba(255,255,255,0.95); transform: translateY(-50%) translateX(-2px); }
                   .pill-handle { width: 44px; height: 6px; background: rgba(255,255,255,0.03); border-radius: 9999px; margin: 0 auto 10px; display: none; }
-
-                  /* analyze button kept premium but slightly darker to fit black theme */
-                  .analyze-btn { position: relative; display: inline-block; padding: 12px 36px; border-radius: 9999px; font-weight: 700; font-size: 1.02rem; color: #051016; background: linear-gradient(90deg, #00f0b0 0%, #6aa1ff 55%, #9b6bff 100%); border: none; cursor: pointer; box-shadow: 0 24px 70px rgba(50,80,255,0.10), 0 6px 30px rgba(0,200,140,0.04); transition: transform .12s ease, box-shadow .12s ease; }
-                  .analyze-btn::after { content: ''; position: absolute; inset: -8px; border-radius: inherit; filter: blur(18px); background: linear-gradient(90deg, rgba(0,240,176,0.08), rgba(106,161,255,0.08), rgba(155,107,255,0.08)); z-index: -1; }
-                  .analyze-btn:hover { transform: translateY(-4px); box-shadow: 0 36px 100px rgba(50,80,255,0.16), 0 12px 40px rgba(0,200,140,0.06); }
-                  .analyze-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-                  @media (max-width: 640px) {
-                    .job-card-wrapper { padding: 0 16px; }
-                    .job-row { gap: 12px; }
-                    .job-icon { width: 40px; height: 40px; }
-                    .job-textarea { min-height: 48px; }
-                    .analyze-btn { padding: 10px 22px; }
-                    .pill-handle { display: block; }
-                  }
-
+                  .analyze-btn { position: relative; display: inline-flex; align-items: center; gap: 10px; padding: 10px 36px; border-radius: 9999px; font-weight: 700; font-size: 1.02rem; color: #E6F0FA; background: linear-gradient(90deg, rgba(255,255,255,0.01) 0%, rgba(255,255,255,0.015) 50%, rgba(255,255,255,0.01) 100%); border: 1px solid rgba(255,255,255,0.06); cursor: pointer; box-shadow: inset 0 1px 0 rgba(255,255,255,0.02), 0 10px 28px rgba(3,6,10,0.45); transition: transform .12s ease, background-position .6s ease, box-shadow .12s ease; background-size: 200% 100%; background-position: 0% 0%; }
+                  .analyze-btn:hover { transform: translateY(-3px); background-position: 100% 0%; box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), 0 18px 44px rgba(3,6,10,0.5); }
+                  .analyze-btn svg { opacity: 0.95; transform: translateX(0); transition: transform .12s ease; }
+                  .analyze-btn:hover svg { transform: translateX(4px); }
+                  .analyze-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
+                  @media (max-width: 640px) { .job-card-wrapper { padding: 0 16px; } .job-row { gap: 12px; } .job-icon { width: 40px; height: 40px; } .job-textarea { min-height: 48px; } .analyze-btn { padding: 10px 22px; } .pill-handle { display: block; } }
                 `}</style>
 
                 <div className="job-card">
@@ -123,9 +99,8 @@ export default function ResumeAnalysisPage() {
                       className="job-textarea"
                       placeholder="Paste the job description here to analyze skill gaps..."
                       value={jobRole}
-                      onChange={e => setJobRole(e.target.value)}
+                      onChange={e => { setJobRole(e.target.value); /* autosize via CSS by leaving rows and max-height */ }}
                       rows={1}
-                      onInput={autoExpand}
                       aria-label="Job description"
                     />
 
@@ -140,12 +115,12 @@ export default function ResumeAnalysisPage() {
                     </button>
                   </div>
 
-                  <div className="job-helper">Tip: Paste a job posting or short role summary to get targeted skill gap analysis.</div>
+                  {/* tip removed */}
                 </div>
               </div>
             </div>
 
-            <div className="mt-10">
+            <div className="mt-8">
               <button
                 onClick={handleAnalyze}
                 disabled={loading || !jobRole.trim()}
@@ -155,7 +130,7 @@ export default function ResumeAnalysisPage() {
               </button>
             </div>
           </div>
-  )}
+        )}
 
         <div className="w-full h-0.5 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-full mb-16" />
 

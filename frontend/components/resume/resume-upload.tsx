@@ -142,15 +142,15 @@ export function ResumeUpload({ onResumeExtracted }: ResumeUploadProps) {
                   <button
                     onClick={handleExtractResume}
                     disabled={isAnalyzing}
-                    className="px-6 py-2 rounded-full font-bold text-base transition-all shadow-md bg-emerald-500 hover:bg-emerald-600 focus:bg-emerald-700 text-white"
+                    className="px-6 py-2 rounded-full font-semibold text-base transition-all border bg-transparent text-white"
                     style={{
-                      border: 'none',
+                      borderColor: 'rgba(255,255,255,0.06)',
                       outline: 'none',
                       cursor: isAnalyzing ? 'not-allowed' : 'pointer',
-                      opacity: isAnalyzing ? 0.6 : 1,
+                      opacity: isAnalyzing ? 0.5 : 1,
                       minWidth: '120px',
                       fontSize: '1rem',
-                      boxShadow: '0 2px 12px 0 rgba(16,185,129,0.10)',
+                      boxShadow: '0 8px 22px rgba(3,6,10,0.45)'
                     }}
                   >
                     Next
