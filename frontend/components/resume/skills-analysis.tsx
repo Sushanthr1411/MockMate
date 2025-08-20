@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Brain, TrendingUp } from "lucide-react"
+import { Brain, TrendingUp, Clipboard } from "lucide-react"
 
 const defaultExtractedSkills = [
   { name: "JavaScript", level: 90, category: "Technical" },
@@ -37,15 +37,16 @@ export function SkillsAnalysis({ skills, keywords, loading }: SkillsAnalysisProp
   const keywordsList = keywords && keywords.length ? keywords : defaultKeywords;
 
   return (
-    <Card className="glass">
+  <Card className="glass transform transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl card-entrance card-gloss">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Brain className="h-5 w-5 text-primary" />
-          Skills Analysis
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">Skills Analysis</span>
         </CardTitle>
         <CardDescription>AI-extracted skills and keywords from your resume</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        <div className="card-inner-highlight" aria-hidden />
         {/* Skills with levels */}
         {loading ? (
           <div className="space-y-4">
@@ -70,7 +71,7 @@ export function SkillsAnalysis({ skills, keywords, loading }: SkillsAnalysisProp
                   </div>
                   <span className="text-sm text-muted-foreground">{(skill.level ?? 75)}%</span>
                 </div>
-                <Progress value={skill.level ?? 75} className="h-2" />
+                <Progress value={skill.level ?? 75} className="h-2 transition-all duration-700 ease-out" />
               </div>
             ))}
           </div>
@@ -80,12 +81,26 @@ export function SkillsAnalysis({ skills, keywords, loading }: SkillsAnalysisProp
         {/* Keywords */}
         <div>
           <h4 className="font-semibold mb-4">Key Terms & Technologies</h4>
-          <div className="flex flex-wrap gap-2">
-            {keywordsList.map((keyword) => (
-              <Badge key={keyword} variant="secondary" className="glass">
-                {keyword}
-              </Badge>
-            ))}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex flex-wrap gap-2">
+              {keywordsList.map((keyword) => (
+                <Badge key={keyword} variant="secondary" className="glass">
+                  {keyword}
+                </Badge>
+              ))}
+            </div>
+            <button
+              type="button"
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/6 text-sm hover:bg-white/10 transition"
+              onClick={() => {
+                try { navigator.clipboard.writeText(keywordsList.join(', ')); }
+                catch (e) {}
+              }}
+              aria-label="Copy keywords"
+              title="Copy keywords"
+            >
+              <Clipboard className="h-4 w-4" /> Copy
+            </button>
           </div>
         </div>
       </CardContent>

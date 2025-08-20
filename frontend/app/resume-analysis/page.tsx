@@ -3,6 +3,8 @@ import { useState } from "react";
 import { ResumeUpload } from "@/components/resume/resume-upload";
 import { SkillsAnalysis } from "@/components/resume/skills-analysis";
 import { GapAnalysis } from "@/components/resume/gap-analysis";
+import { Recommendations } from "@/components/resume/recommendations";
+import { Star } from "lucide-react";
 export default function ResumeAnalysisPage() {
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -68,6 +70,41 @@ export default function ResumeAnalysisPage() {
   return (
     <div className="min-h-screen pb-12 relative">
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <style>{`
+          /* Premium glossy overlay and shimmer on hover for analysis cards */
+          .card-gloss { position: relative; overflow: hidden; }
+          .card-gloss::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.00));
+            mix-blend-mode: overlay;
+            z-index: 1;
+          }
+          .card-gloss::after {
+            content: "";
+            position: absolute;
+            top: -120%;
+            left: -40%;
+            width: 180%;
+            height: 260%;
+            background: linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.18), rgba(255,255,255,0.06));
+            transform: translateX(-100%) rotate(18deg);
+            opacity: 0;
+            transition: transform 900ms cubic-bezier(.2,.9,.2,1), opacity 450ms ease;
+            z-index: 2;
+          }
+          .card-gloss:hover::after { transform: translateX(40%) rotate(18deg); opacity: 0.95; }
+          /* subtle inner highlight */
+          .card-gloss .card-inner-highlight {
+            position: absolute; inset: 0; pointer-events: none; z-index: 0;
+            background: radial-gradient(600px 200px at 10% 10%, rgba(255,255,255,0.02), transparent 20%);
+            mix-blend-mode: screen; opacity: 0.9;
+          }
+          /* keep content above overlays */
+          .card-gloss > * { position: relative; z-index: 3; }
+        `}</style>
         {/* Header with extra gap from navbar */}
         <div className="text-center space-y-4 mb-16 mt-32">
           <h1 className="text-4xl sm:text-5xl font-bold">
@@ -187,13 +224,29 @@ export default function ResumeAnalysisPage() {
             </div>
 
             {/* Analysis sections stacked below, responsive for mobile */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-24">
+      {/* Premium header removed per request - results appear below */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
               <div>
-                <SkillsAnalysis skills={skillsData ?? undefined} keywords={keywordsData ?? undefined} />
+                <SkillsAnalysis skills={skillsData ?? undefined} keywords={keywordsData ?? undefined} loading={loading} />
               </div>
               <div>
-                <GapAnalysis gapAnalysis={gapAnalysisData ?? undefined} />
+                <GapAnalysis gapAnalysis={gapAnalysisData ?? undefined} loading={loading} />
               </div>
+            </div>
+
+            {/* Recommendations separated below the two-column analysis */}
+            <div className="mb-8">
+              {/* normalize recommendations to array */}
+              <Recommendations
+                loading={loading}
+                recommendations={
+                  gapAnalysisData?.recommendations
+                    ? Array.isArray(gapAnalysisData.recommendations)
+                      ? gapAnalysisData.recommendations
+                      : [String(gapAnalysisData.recommendations)]
+                    : []
+                }
+              />
             </div>
 
             <div className="mt-8 p-6 bg-white rounded shadow text-gray-800">

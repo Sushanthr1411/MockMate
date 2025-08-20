@@ -1,11 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import React from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
+// ...existing code...
 import { Badge } from "@/components/ui/badge"
-import { AlertTriangle, CheckCircle, Target, Plus } from "lucide-react"
+import { AlertTriangle, CheckCircle, Target } from "lucide-react"
 
 const defaultGapAnalysis = {
   matching: ["JavaScript", "React", "Node.js", "Leadership", "Communication"],
@@ -31,16 +30,10 @@ export function GapAnalysis({ gapAnalysis, loading }: GapAnalysisProps) {
     recommendations: gapAnalysisDataRaw.recommendations ?? [],
   };
 
-  const [jobDescription, setJobDescription] = useState("")
-  const [isAnalyzing, setIsAnalyzing] = useState(false)
-
-  const analyzeGap = () => {
-    setIsAnalyzing(true)
-    setTimeout(() => setIsAnalyzing(false), 2000)
-  }
+  // No local job input here; job description is provided at the page level.
 
   return (
-    <Card className="glass">
+  <Card className="glass transform transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl card-entrance card-gloss">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Target className="h-5 w-5 text-primary" />
@@ -49,29 +42,9 @@ export function GapAnalysis({ gapAnalysis, loading }: GapAnalysisProps) {
         <CardDescription>Compare your skills against job requirements</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Job description input */}
-        <div className="space-y-3">
-          <label className="text-sm font-medium">Job Description</label>
-          <Textarea
-            placeholder="Paste the job description here to analyze skill gaps..."
-            value={jobDescription}
-            onChange={(e) => setJobDescription(e.target.value)}
-            className="min-h-[100px] glass bg-transparent w-full max-w-4xl mx-auto"
-          />
-          <Button onClick={analyzeGap} disabled={!jobDescription || isAnalyzing} className="w-full">
-            {isAnalyzing ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
-                Analyzing...
-              </>
-            ) : (
-              <>
-                <Plus className="h-4 w-4 mr-2" />
-                Analyze Gap
-              </>
-            )}
-          </Button>
-        </div>
+        <div className="card-inner-highlight" aria-hidden />
+
+  {/* Analysis results */}
 
         {/* Analysis results */}
         {loading ? (
@@ -111,17 +84,7 @@ export function GapAnalysis({ gapAnalysis, loading }: GapAnalysisProps) {
             </div>
           </div>
 
-          {/* Recommendations */}
-          <div>
-            <h4 className="font-semibold mb-3">Recommendations</h4>
-            <div className="space-y-2">
-              {gapAnalysisData.recommendations.map((rec, index) => (
-                <div key={index} className="p-3 glass rounded-lg text-sm">
-                  <p>{rec}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+          {/* Recommendations moved to a separate component below the analysis grid */}
         </div>
         )}
       </CardContent>
