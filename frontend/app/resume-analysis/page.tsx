@@ -4,7 +4,7 @@ import { ResumeUpload } from "@/components/resume/resume-upload";
 import { SkillsAnalysis } from "@/components/resume/skills-analysis";
 import { GapAnalysis } from "@/components/resume/gap-analysis";
 import { Recommendations } from "@/components/resume/recommendations";
-import { Star } from "lucide-react";
+import { Star, Upload } from "lucide-react";
 export default function ResumeAnalysisPage() {
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -23,12 +23,24 @@ export default function ResumeAnalysisPage() {
   }
 
   async function handleAnalyze() {
-    if (!resumeText || !jobRole) return;
+    // start spinner immediately when the user clicks Send
     setLoading(true);
     setAnalysis(null);
     setSkillsData(null);
     setGapAnalysisData(null);
     setKeywordsData(null);
+
+    // validate inputs; if missing, stop loading so spinner doesn't hang
+    if (!jobRole) {
+      // nothing to analyze for job description alone
+      setLoading(false);
+      return;
+    }
+    if (!resumeText) {
+      // resume text missing — stop spinner and return (frontend uses mocked dev result otherwise)
+      setLoading(false);
+      return;
+    }
     try {
       const res = await fetch("/api/analyze-resume", {
         method: "POST",
@@ -116,6 +128,21 @@ export default function ResumeAnalysisPage() {
             Upload your resume to get AI-powered insights, skill analysis, and personalized recommendations to optimize your job applications.
           </p>
         </div>
+
+        {/* Global analyzing overlay (same as ResumeUpload) */}
+        {loading && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center backdrop-blur-2xl bg-black/60">
+            <div className="flex flex-col items-center gap-6 animate-fade-in">
+              <div className="relative">
+                <div className="w-24 h-24 border-8 border-primary border-t-transparent rounded-full animate-spin" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Upload className="h-12 w-12 text-secondary animate-bounce" />
+                </div>
+              </div>
+              <h2 className="text-3xl font-bold text-white drop-shadow-lg animate-pulse">Analyzing your resume...</h2>
+            </div>
+          </div>
+        )}
 
         {/* Upload Resume full width, remove ResumePreview */}
         <div className="w-full mb-8">
