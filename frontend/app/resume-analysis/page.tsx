@@ -79,6 +79,20 @@ export default function ResumeAnalysisPage() {
     setLoading(false);
   }
 
+  // Download the analysis text as a .txt file
+  function handleDownload() {
+    if (!analysis) return;
+    const blob = new Blob([analysis], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "resume-analysis.txt";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="min-h-screen pb-12 relative">
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -277,7 +291,16 @@ export default function ResumeAnalysisPage() {
             </div>
 
             <div className="mt-8 p-6 bg-white rounded shadow text-gray-800">
-              <h2 className="text-2xl font-semibold mb-4">Analysis Result</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-semibold">Analysis Result</h2>
+                <button
+                  onClick={handleDownload}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded bg-primary text-primary-foreground text-sm font-medium"
+                  title="Download analysis"
+                >
+                  Download
+                </button>
+              </div>
               <pre className="whitespace-pre-wrap break-words">{analysis}</pre>
             </div>
           </>
