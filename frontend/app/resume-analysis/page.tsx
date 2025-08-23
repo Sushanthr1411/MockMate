@@ -295,7 +295,7 @@ export default function ResumeAnalysisPage() {
                 <h2 className="text-2xl font-semibold">Analysis Result</h2>
                 <button
                   onClick={handleDownload}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded bg-primary text-primary-foreground text-sm font-medium"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded bg-gradient-to-r from-[#0cc0df] to-[#ffde59] text-[#071018] text-sm font-medium shadow-md hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0cc0df]/30"
                   title="Download analysis"
                 >
                   Download
