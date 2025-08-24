@@ -98,5 +98,5 @@ export async function callGemini(prompt: string): Promise<any> {
     await new Promise((r) => setTimeout(r, backoffMs));
   }
 
-  throw new Error("Failed to call Gemini API");
+  throw new Error("Failed to call Gemini API, try again");
 }
