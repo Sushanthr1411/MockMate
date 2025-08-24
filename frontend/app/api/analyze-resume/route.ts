@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
       const mock = {
         result: {
           text: "Mock analysis generated (no Gemini credentials).",
-          analysisText: "Your resume is strong in JavaScript/React. Consider adding more backend exposure (Python, Docker).",
+          analysisText: "Your resume is strong in JavaScript/React. Consider adding more backend exposure like (Python, Docker).",
           skills: [
             { name: 'JavaScript', level: 88, category: 'Technical' },
             { name: 'React', level: 82, category: 'Technical' },
