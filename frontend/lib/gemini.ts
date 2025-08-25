@@ -1,102 +1,89 @@
 // lib/gemini.ts
-// Utility to call Gemini API securely from server-side
+// Small server-side helper to call the Generative Language API (Gemini).
+// Defaults to the flash model: gemini-2.5-flash
 
-export async function callGemini(prompt: string): Promise<any> {
+// intentionally avoid a top-level import from 'google-auth-library' so bundlers
+// don't force the package to be resolved at build time. We `require` it at
+// runtime when available and treat the client as `any`.
+
+// ADC/service-account flow removed per repo decision. Keep the helper
+// simple: require GEMINI_API_KEY (API key or OAuth access token) for auth.
+
+export async function callGemini(prompt: string, opts?: { model?: string; timeoutMs?: number }): Promise<any> {
   const apiKey = process.env.GEMINI_API_KEY;
-  // Allow overriding base URL and model via env. Default to v1/generate for gemini-2.5-pro.
-  const base = process.env.GEMINI_BASE_URL || "https://generativelanguage.googleapis.com";
-  const model = process.env.GEMINI_MODEL || "gemini-2.5-pro";
-  // Normalize to the full model resource name returned by ListModels (e.g. "models/gemini-2.5-pro")
-  const modelName = model.startsWith("models/") ? model : `models/${model}`;
-  const url = process.env.GEMINI_URL || `${base}/v1/${modelName}:generate`;
-  const body = {
-    contents: [{ parts: [{ text: prompt }] }]
+  const base = process.env.GEMINI_BASE_URL || 'https://generativelanguage.googleapis.com';
+  const modelParam = opts?.model || process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+  const model = modelParam.startsWith('models/') ? modelParam : `models/${modelParam}`;
+  const url = process.env.GEMINI_URL || `${base}/v1/${model}:generate`;
+
+  const body = { contents: [{ parts: [{ text: prompt }] }] };
+
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+
+  // Attach auth header using GEMINI_API_KEY only. ADC/service-account support
+  // was intentionally removed to avoid server-only dependencies in the
+  // frontend package.
+  if (apiKey) {
+    if (apiKey.startsWith('ya29.') || apiKey.startsWith('ya29-')) {
+      headers['Authorization'] = `Bearer ${apiKey}`;
+    } else {
+      headers['x-goog-api-key'] = apiKey;
+    }
+  } else {
+    throw new Error('GEMINI_API_KEY is required to call the Generative Language API. Set GEMINI_API_KEY as an API key or access token.');
+  }
+
+  const timeoutMs = opts?.timeoutMs ?? 20000;
+
+  const doPost = async (targetUrl: string) => {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(targetUrl, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+      const text = await res.text().catch(() => '');
+      return { ok: res.ok, status: res.status, text };
+    } finally {
+      clearTimeout(id);
+    }
   };
 
-  const headers: any = { "Content-Type": "application/json" };
-  if (apiKey) {
-    if (apiKey.startsWith("ya29.")) {
-      headers["Authorization"] = `Bearer ${apiKey}`;
-    } else {
-      headers["x-goog-api-key"] = apiKey;
+  // Try primary endpoint, retry once on 429/5xx
+  const attempt = await doPost(url);
+  if (attempt.ok) {
+    try {
+      return JSON.parse(attempt.text);
+    } catch (e) {
+      return attempt.text;
     }
   }
 
-  // retry with exponential backoff for transient errors
-  const maxAttempts = 3;
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    const res = await fetch(url, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(body),
-    });
+  if (attempt.status === 404) {
+    // model not found — surface helpful error
+    throw new Error(`Gemini model endpoint not found (404). URL: ${url} Response: ${attempt.text}`);
+  }
 
-    // If model/endpoint not found (404) try to recover:
-    if (res.status === 404) {
-      const initialText = await res.text().catch(() => "");
-      const listUrl = `${base}/v1/models`;
+  if (attempt.status === 429 || (attempt.status >= 500 && attempt.status < 600)) {
+    // one retry
+    const retry = await doPost(url);
+    if (retry.ok) {
       try {
-        const listRes = await fetch(listUrl, { method: "GET", headers });
-        const listText = await listRes.text().catch(() => "");
-        if (!listRes.ok) {
-          throw new Error(`failed to list models: ${listText}`);
-        }
-
-        const listJson = JSON.parse(listText || "{}");
-        const available = (listJson.models || []).map((m: any) => m.name);
-
-        // Build prioritized candidate list: prefer configured modelName, then common choices found in the list
-        const preferred = [modelName, "models/gemini-2.5-pro", "models/gemini-2.5-flash", "models/gemini-1.5-pro", "models/gemini-1.5-flash"];
-        const candidates = Array.from(new Set([
-          ...preferred.filter(Boolean),
-          ...available,
-        ])).slice(0, 20);
-
-        const errors: string[] = [];
-        for (const candidate of candidates) {
-          try {
-            const tryUrl = `${base}/v1/${candidate}:generate`;
-            const tryRes = await fetch(tryUrl, { method: "POST", headers, body: JSON.stringify(body) });
-            if (tryRes.ok) {
-              return tryRes.json();
-            }
-            const t = await tryRes.text().catch(() => "");
-            errors.push(`${candidate} -> ${tryRes.status} ${t}`);
-          } catch (e: any) {
-            errors.push(`${candidate} -> error ${e?.message || e}`);
-          }
-        }
-
-        throw new Error(
-          `Gemini API error: 404 ${initialText} — attempted fallback models but none succeeded. Tried: ${candidates.join(", ")}. Results: ${errors.join(" | ")}. Available models: ${available.join(", ")}`
-        );
-      } catch (e: any) {
-        throw new Error(
-          `Gemini API error: 404 ${initialText} — could not recover by listing models: ${e?.message || e}`
-        );
+        return JSON.parse(retry.text);
+      } catch (e) {
+        return retry.text;
       }
     }
-
-    if (res.ok) {
-      return res.json();
-    }
-
-    // if client error (4xx) except 429, don't retry
-    if (res.status >= 400 && res.status < 500 && res.status !== 429) {
-      const text = await res.text().catch(() => "");
-      throw new Error(`Gemini API error: ${res.status} ${text}`);
-    }
-
-    // last attempt -> throw
-    if (attempt === maxAttempts) {
-      const text = await res.text().catch(() => "");
-      throw new Error(`Gemini API error: ${res.status} ${text}`);
-    }
-
-    // backoff before next attempt
-    const backoffMs = 500 * Math.pow(2, attempt - 1);
-    await new Promise((r) => setTimeout(r, backoffMs));
+    throw new Error(`Gemini API error after retry: ${retry.status} ${retry.text}`);
   }
 
-  throw new Error("Failed to call Gemini API");
+  // client error (4xx other than 404/429)
+  if (attempt.status >= 400 && attempt.status < 500) {
+    throw new Error(`Gemini API client error: ${attempt.status} ${attempt.text}`);
+  }
+
+  throw new Error(`Gemini API unexpected failure: ${attempt.status} ${attempt.text}`);
 }

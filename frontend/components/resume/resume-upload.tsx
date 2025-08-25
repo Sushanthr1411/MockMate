@@ -11,9 +11,10 @@ import { cn } from "@/lib/utils"
 
 interface ResumeUploadProps {
   onResumeExtracted?: (resumeText: string) => void;
+  onFileSelected?: (file: File) => void;
 }
 
-export function ResumeUpload({ onResumeExtracted }: ResumeUploadProps) {
+export function ResumeUpload({ onResumeExtracted, onFileSelected }: ResumeUploadProps) {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
@@ -23,6 +24,7 @@ export function ResumeUpload({ onResumeExtracted }: ResumeUploadProps) {
     const file = acceptedFiles[0]
     if (file && file.type === "application/pdf") {
       setUploadedFile(file)
+  if (onFileSelected) onFileSelected(file);
       setIsAnalyzing(false)
     }
   }, [])

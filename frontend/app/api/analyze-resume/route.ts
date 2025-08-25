@@ -1,100 +1,97 @@
-// API route to analyze resume using Gemini
-import { NextRequest, NextResponse } from "next/server";
-import { callGemini } from "@/lib/gemini";
+import { NextRequest, NextResponse } from 'next/server';
+import { callGemini } from '@/lib/gemini';
+
+// Note: server-side PDF extraction uses `pdf-parse`. Install with:
+// cd frontend && pnpm add pdf-parse
 
 export async function POST(req: NextRequest) {
-  const { resumeText, jobRole } = await req.json();
-  if (!resumeText) {
-    return NextResponse.json({ error: "No resume text provided" }, { status: 400 });
-  }
+  let resumeText: string | null = null;
+  let jobRole = '';
 
-  // create a helpful prompt that requests JSON-structured output if possible
-  const prompt = `You are an assistant that analyzes resumes. Given the resume text and a target job description, extract:
-  1) A short analysis summary.
-  2) A list of skills with proficiency percentages (if detectable).
-  3) A list of keywords.
-  4) A gap analysis object with matching, missing, and recommendations.
-
-  Resume:\n${resumeText}\n\nJobDescription:\n${jobRole || ""}\n
-  Return a JSON object with keys: analysisText, skills (array), keywords (array), gapAnalysis (object).
-  If you cannot provide structured JSON, return a plain-text analysis.
-  `;
+  const contentType = req.headers.get('content-type') || '';
 
   try {
-    // If no Gemini API key (local/dev), return a mocked response so frontend can be tested
-    const hasApiKey = !!process.env.GEMINI_API_KEY || !!process.env.GEMINI_URL;
-    if (!hasApiKey && process.env.NODE_ENV !== 'production') {
-      const mock = {
-        result: {
-          text: "Mock analysis generated (no Gemini credentials).",
-          analysisText: "Your resume is strong in JavaScript/React. Consider adding more backend exposure (Python, Docker).",
-          skills: [
-            { name: 'JavaScript', level: 88, category: 'Technical' },
-            { name: 'React', level: 82, category: 'Technical' },
-            { name: 'Node.js', level: 70, category: 'Technical' }
-          ],
-          keywords: ['JavaScript','React','Node.js','REST APIs'],
-          gapAnalysis: { matching: ['JavaScript','React'], missing: ['Python','Docker'], recommendations: ['Add Python projects','Get Docker practice'] },
-          raw: null
+    if (contentType.includes('multipart/form-data')) {
+      // handle file upload from browser FormData
+      const form = await req.formData();
+      const f = form.get('file') as File | null;
+      jobRole = form.get('jobRole')?.toString() || '';
+      if (f) {
+        try {
+          const ab = await f.arrayBuffer();
+          const buffer = Buffer.from(ab);
+          // require pdf-parse at runtime (optional dependency)
+          let pdfParse: any = null;
+          try {
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            pdfParse = require('pdf-parse');
+          } catch (e) {
+            // library missing — fall through to error handling
+            throw new Error('pdf-parse not installed. Run `pnpm add pdf-parse` in frontend.');
+          }
+          const data = await pdfParse(buffer);
+          resumeText = data?.text || null;
+        } catch (e: any) {
+          // fall through to resumeText null and error path below
+          resumeText = null;
+          console.error('PDF extraction failed:', e?.message || e);
         }
-      };
-      return NextResponse.json(mock);
+      }
+    } else {
+      // fallback for JSON POSTs
+      const json = await req.json().catch(() => ({}));
+      resumeText = json?.resumeText ?? null;
+      jobRole = json?.jobRole ?? '';
     }
 
-    const geminiRes = await callGemini(prompt);
+    if (!resumeText) {
+      return NextResponse.json({ error: 'No resume text provided' }, { status: 400 });
+    }
 
-    // attempt to read response text in a few common places
-    const candidateText = geminiRes?.candidates?.[0]?.content?.parts?.[0]?.text || geminiRes?.output?.text || geminiRes?.text || JSON.stringify(geminiRes);
+    const prompt = `You are an assistant that analyzes resumes. Given the resume text and a target job description, extract:\n1) A short analysis summary (analysisText).\n2) A list of skills with optional proficiency percentages (skills: [{name, level, category}]).\n3) A list of keywords (keywords: [string]).\n4) A gapAnalysis object with matching, missing, and recommendations.\n\nResume:\n${resumeText}\n\nJobDescription:\n${jobRole || ''}\n\nReturn a JSON object with keys: analysisText, skills (array), keywords (array), gapAnalysis (object). If you cannot provide structured JSON, return plain text.`;
 
-    // try to parse JSON out of the candidateText
+    const res = await callGemini(prompt, { model: 'models/gemini-2.5-flash', timeoutMs: 20000 });
+
+    // Extract candidate text from common shapes
+    const candidateText = res?.candidates?.[0]?.content?.parts?.[0]?.text || res?.output?.text || res?.text || JSON.stringify(res);
+
+    // Try parse
     let parsed: any = null;
     try {
       parsed = JSON.parse(candidateText);
     } catch (e) {
-      // try to locate a JSON substring
-      const jsonMatch = candidateText && candidateText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        try {
-          parsed = JSON.parse(jsonMatch[0]);
-        } catch (e) {
-          parsed = null;
-        }
+      const m = candidateText && candidateText.match(/\{[\s\S]*\}/);
+      if (m) {
+        try { parsed = JSON.parse(m[0]); } catch (e) { parsed = null; }
       }
     }
 
-    const result: any = {
-      raw: geminiRes,
-      text: candidateText,
-    };
-
+    const result: any = { raw: res, text: candidateText };
     if (parsed) {
-      result.analysisText = parsed.analysisText || candidateText;
+      result.analysisText = parsed.analysisText || parsed.summary || candidateText;
       result.skills = parsed.skills || parsed.extractedSkills || null;
       result.keywords = parsed.keywords || null;
       result.gapAnalysis = parsed.gapAnalysis || null;
+    } else {
+      result.analysisText = candidateText;
     }
 
     return NextResponse.json({ result });
   } catch (err: any) {
-    // If we're running locally (no production), fall back to a mocked result so the UI remains usable
+    console.error('analyze-resume error:', err?.message || err);
     if (process.env.NODE_ENV !== 'production') {
       const mock = {
         result: {
-          text: "Mock analysis generated after Gemini error (dev fallback).",
-          analysisText: "Your resume is strong in JavaScript/React. Consider adding more backend exposure (Python, Docker).",
-          skills: [
-            { name: 'JavaScript', level: 88, category: 'Technical' },
-            { name: 'React', level: 82, category: 'Technical' },
-            { name: 'Node.js', level: 70, category: 'Technical' }
-          ],
-          keywords: ['JavaScript','React','Node.js','REST APIs'],
-          gapAnalysis: { matching: ['JavaScript','React'], missing: ['Python','Docker'], recommendations: ['Add Python projects','Get Docker practice'] },
+          text: 'Mock analysis placeholder (no credentials or extraction failure).',
+          analysisText: 'AI analysis unavailable: server credentials or extraction not configured.',
+          skills: [],
+          keywords: [],
+          gapAnalysis: { matching: [], missing: [], recommendations: [] },
           raw: { error: err?.message }
         }
       };
       return NextResponse.json(mock);
     }
-
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: err?.message || 'Server error' }, { status: 500 });
   }
 }
